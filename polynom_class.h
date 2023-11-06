@@ -1,96 +1,115 @@
 #pragma once
+
+#include "solvers.h"
+
 #include "matrix_class.h"
+
 #include <cmath>
 #include <string>
 #include <iostream>
 
 namespace biv {
 
-	double my_pow(double x, int k) {
-		double res = 1;
-		while (k > 0) {
-			if ((k & 1)) res = res * x;
-			x *= x;
-			k >>= 1;
+double my_pow(double x, int k) {
+	double res = 1;
+	while (k > 0) {
+		if ((k & 1)) res = res * x;
+		x *= x;
+		k >>= 1;
+	}
+	return res;
+}
+
+template <typename Number>
+class Polynom {
+public:
+	size_t n;
+	vector<Number> v;
+
+	Polynom(int n) : n(n) {
+		if (n < 0) {
+			cout << "Bad degree\n";
+			throw;
 		}
-		return res;
+		vector<Number> a(n);
+		v = a;
+	}
+	Polynom(const vector<Number>& v) : v(v), n(v.size()) {}
+	Polynom(const std::initializer_list<Number>& ll) {
+		v = ll;
+		n = ll.size();
+	}
+	Polynom(const Polynom& p) {
+		v = p.v;
+		n = p.n;
 	}
 
-	template <typename Number>
-	class Polynom {
-	public:
-		size_t n;
-		vector<Number> v;
+	Number& operator[](int i) {
+		if (i >= n || i < 0) {
+			cout << "Seg fault poly\n";
+			throw;
+		}
+		return &v[i];
+	}
+	const Number& operator[](int i) const {
+		if (i >= n || i < 0) {
+			cout << "Seg fault poly\n";
+			throw;
+		}
+		return v[i];
+	}
+	Polynom& operator*(Number x) {
+		for (auto& q : v) q *= x;
+		return *this;
+	}
 
-		Polynom(int n) : n(n) {
-			if (n < 0) {
-				cout << "Bad degree\n";
-				throw;
-			}
-			vector<Number> a(n);
-			v = a;
-		}
-		Polynom(const vector<Number>& v) : v(v) {}
-		Polynom(const std::initializer_list<Number>& ll) {
-			v = ll;
-			n = ll.size();
-		}
-		Polynom(const Polynom& p) {
-			v = p.v;
-			n = p.n;
-		}
+	//Polynom& operator*(const Polynom& p) {
+	//	if (p.n > 1) {
+	//		cout << "wait for FFT\n";
+	//		throw;
+	//	}
+	//	else if (p.n == 1) {
+	//		//ÇÀÊÎÍ×ÈË ÇÄÅÑÜ
+	//	}
+	//	return {};
+	//}
 
-		Number& operator[](int i) {
-			if (i >= n || i < 0) {
-				cout << "Seg fault poly\n";
-				throw;
-			}
-			return &v[i];
+	double value(double x) {
+		Number ans = 0;
+		if (abs(x) <= 1) {
+			for (int i = this->n - 1; i >= 0; i--)
+				ans = ans + this[i] * my_pow(x, i);
 		}
-		const Number& operator[](int i) const {
-			if (i >= n || i < 0) {
-				cout << "Seg fault poly\n";
-				throw;
-			}
-			return v[i];
+		else {
+			for (int i = 0; i < this->n; i++)
+				ans = ans + this[i] * my_pow(x, i);
 		}
-		Polynom& operator*(Number x) {
-			for (auto& q : v) q *= x;
-			return *this;
-		}
-		/// <summary>
-		/// ??????????????
-		/// </summary>
-		/// <param name="p"></param>
-		/// <returns></returns>
-		Polynom& operator*(const Polynom& p) {
-			if (p.n > 1) {
-				cout << "wait for FFT\n";
-				throw;
-			}
-			else if (p.n == 1) {
-				//ÇÀÊÎÍ×ÈË ÇÄÅÑÜ
-			}
-			return {};
-		}
+		return ans;
+	}
 
-		Number value(double x) {
-
-			Number ans = 0;
-			if (abs(x) <= 1) {
-				for (int i = this->n - 1; i >= 0; i--)
-					ans = ans + this[i] * my_pow(x, i);
-				return ans;
-			}
+	vector<double> findRoots(double& report) {
+		alglib::real_1d_array coef; coef.setlength(n);
+		for (int i = 0; i < n; i++) coef[i] = v[i];
+		alglib::complex_1d_array x; x.setlength(n-1);
+		alglib::polynomialsolverreport rep;
+		alglib::polynomialsolve(coef, n-1, x, rep);
+		report = rep.maxerr;
+		int real_count = n-1;
+		
+		vector<double> vec; vec.reserve(n - 1);
+		for (int i = 0; i < n - 1; i++) {
+			if (x[i].tostring(5).back() == 'i') real_count--;
 			else {
-				for (int i = 0; i < this->n; i++)
-					ans = ans + this[i] * my_pow(x, i);
-				return ans;
+				vec.push_back(stod(x[i].tostring(5)));
+				cout << stod(x[i].tostring(5)) << "\n";
 			}
 		}
-	};
+		if (real_count != n - 1) cerr << "poly has complex roots!!\n";
+		return vec;
+	}
+};
 
-
+	//SPECIALIZATION FOR MATRICES
 	template <typename Number>
 	class Polynom<Matrix<Number>> {
 	public:
@@ -133,22 +152,16 @@ namespace biv {
 			for (auto& q : v) q *= x;
 			return *this;
 		}
-		/// <summary>
-		/// ??????????????
-		/// </summary>
-		/// <param name="p"></param>
-		/// <returns></returns>
-		Polynom& operator*(const Polynom& p) {
-			if (p.n > 1) {
-				cout << "wait for FFT\n";
-				throw;
-			}
-			else if (p.n == 1) {
-				//??????????
-			}
-			return {};
-		}
-
+		//Polynom& operator*(const Polynom& p) {
+		//	if (p.n > 1) {
+		//		cout << "wait for FFT\n";
+		//		throw;
+		//	}
+		//	else if (p.n == 1) {
+		//		//??????????
+		//	}
+		//	return {};
+		//}
 		Matrix<Number> value(double x) {
 			if (n == 0) {
 				cerr << "Empty poly\n";
@@ -161,7 +174,6 @@ namespace biv {
 					tmp = v[i] * my_pow(x, i);
 					ans = ans + tmp;
 				}
-				return ans;
 			}
 			else {
 				int helper = floor(x);
@@ -171,8 +183,8 @@ namespace biv {
 					ans = ans + tmp;
 				}
 				ans = ans ^ helper;
-				return ans;
 			}
+			return ans;
 		}
 	};
 
@@ -188,7 +200,7 @@ namespace biv {
 			if (poly[i] >= 0 && i != poly.n - 1) prefix += '+';
 			else if (i != poly.n - 1) prefix += '-';
 			os << prefix;
-			os << poly[i];
+			os << abs(poly[i]);
 			if (i != 0)
 				suffix += "x^" + std::to_string(i);
 			os << suffix;

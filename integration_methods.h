@@ -21,10 +21,6 @@ double func_test(double x) {
 }
 
 namespace biv {
-	template <typename Number>
-	Matrix<Number> makeISF(const vector<double>& nodes);
-	template <typename Number>
-	Matrix<Number> makeSFGauss(const vector<double>& nodes);
 	double computeMoment(double k);
 	template <typename Number>
 	double computeIntegral(Matrix<Number> Mu, const vector<double>& nodes);
@@ -41,7 +37,8 @@ namespace biv {
 	}
 
 	template <typename Number>
-	Matrix<Number> makeISF(const vector<Number>& nodes) {
+	Matrix<Number> makeISF(int n, vector<double>& nodes) {
+		nodes = makeNodes(n);
 		Matrix<Number> Mu(nodes.size(), 1);
 		for (int i = 0; i < nodes.size(); i++)
 			Mu(i, 0) = computeMoment(static_cast<double>(i));
@@ -67,7 +64,7 @@ namespace biv {
 	template <typename Number>
 	double computeIntegral(Matrix<Number> Aj, const vector<double>& nodes) {
 		int n = Aj.n;
-		double integrale;
+		double integrale = 0;
 		vector<double> sl(n);
 		for (int i = 0; i < n; i++) {
 			sl[i] = Aj(i, 0) * func(nodes[i]);// xj = tj + a(a a + b / 2 b)
@@ -78,11 +75,10 @@ namespace biv {
 	}
 
 	template <typename Number>
-	Matrix<Number> makeSFGauss(int n) {
+	Matrix<Number> makeSFGauss(int n, vector<double>& nodes) {
 		Matrix<Number> Mu(2 * n, 1);
 		for (int i = 0; i < 2 * n; i++) {
 			Mu(i, 0) = computeMoment(i);
-			cout << i << '\n';
 		}
 		cout << Mu;
 		Matrix<Number> A(n, n);
@@ -93,9 +89,28 @@ namespace biv {
 				B(i, 0) = -Mu(n + i, 0);
 			}
 		}
-		cout << A;
-		cout << B;
-		Matrix<Number> A_ = GaussSlau(A, B);//a[i] of our poly		
+		cout << A << B;
+		Matrix<Number> A_ = GaussSlau(A, B).transpose();//a[i] of our poly	
+		cout << A_;
+		vector<Number> vec = A_[0];
+		vec.push_back(1);
+		Polynom<Number> p(vec);
+		double tmp;
+		nodes = p.findRoots(tmp);
+		cout << tmp << "<------- accuracy\n";
+		cout << p;
+		n = nodes.size();
+		Matrix<Number> A_1(n, n);
+		Matrix<Number> B_1(n, 1);
+		for (int i = 0; i < n; i++) {
+			for (int j = 0; j < n; j++)
+				A_1(i, j) = my_pow(nodes[j], i);
+		}
+		for (int i = 0; i < n; i++)
+			B_1(i, 0) = Mu(i, 0);
+
+		Matrix<Number> Ashki = GaussSlau(A_1, B_1);
+		return Ashki;
 	}
 	/*template <typename Number>
 	Matrix<Number> RhimannIntegrale(double x0, double x1, int N = 1e5, Matrix<Number> (*MatrixFunc)(double ksi)) {

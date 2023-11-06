@@ -3,6 +3,7 @@
 #include <iostream>
 #include <algorithm>
 #include <vector>
+#include <iomanip>
 using namespace std;
 namespace biv {
 	template <typename Number>

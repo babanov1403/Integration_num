@@ -127,9 +127,30 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClInclude Include="alglibinternal.h" />
+    <ClInclude Include="alglibmisc.h" />
+    <ClInclude Include="ap.h" />
     <ClInclude Include="integration_methods.h" />
+    <ClInclude Include="linalg.h" />
     <ClInclude Include="matrix_class.h" />
     <ClInclude Include="polynom_class.h" />
+    <ClInclude Include="solvers.h" />
+    <ClInclude Include="stdafx.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="alglibinternal.cpp" />
+    <ClCompile Include="alglibmisc.cpp" />
+    <ClCompile Include="ap.cpp" />
+    <ClCompile Include="linalg.cpp" />
+    <ClCompile Include="main.cpp" />
+    <ClCompile Include="solvers.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <Text Include="LICENSE.txt" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include=".gitattributes" />
+    <None Include=".gitignore" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
