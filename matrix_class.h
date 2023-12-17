@@ -5,6 +5,9 @@
 #include <vector>
 #include <iomanip>
 using namespace std;
+/*
+	it will be so fucking clever to do here move constructor!!!
+*/
 namespace biv {
 	template <typename Number>
 	class Matrix;
@@ -162,7 +165,7 @@ namespace biv {
 			*this = *this * a;
 			return *this;
 		}
-	*/	Matrix transpose() {
+*/	Matrix transpose() {
 		Matrix& a = *this;
 		Matrix b(a.m, a.n);
 		for (int i = 0; i < a.m; i++)

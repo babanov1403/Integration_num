@@ -95,13 +95,13 @@ public:
 		alglib::polynomialsolve(coef, n-1, x, rep);
 		report = rep.maxerr;
 		int real_count = n-1;
-		
+		//cout << "roots:\n";
+		//cout << x.tostring(5) << '\n';
 		vector<double> vec; vec.reserve(n - 1);
 		for (int i = 0; i < n - 1; i++) {
 			if (x[i].tostring(5).back() == 'i') real_count--;
 			else {
 				vec.push_back(stod(x[i].tostring(5)));
-				cout << stod(x[i].tostring(5)) << "\n";
 			}
 		}
 		if (real_count != n - 1) cerr << "poly has complex roots!!\n";
